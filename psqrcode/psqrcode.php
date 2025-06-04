@@ -34,6 +34,17 @@ class Psqrcode extends Module
 
         $order = $params['order'];
 
+        // Log the hook call with a valid object type for PrestaShopLogger
+        if (class_exists('PrestaShopLogger')) {
+            PrestaShopLogger::addLog(
+                'hook Triggered',
+                PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE,
+                null,
+                'Psqrcode',
+                (int) $order->id
+            );
+        }
+
         $sql = 'SELECT message FROM ' . _DB_PREFIX_ . 'message WHERE id_cart=' . (int) $order->id_cart . ' ORDER BY date_add DESC';
         $message = Db::getInstance()->getValue($sql);
 
