@@ -23,17 +23,12 @@ class Psqrcode extends Module
     public function install()
     {
         return parent::install() &&
-            $this->registerHook('displayOrderConfirmation');
+            $this->registerHook('displayOrderConfirmation') &&
+            $this->registerHook('displayAdminOrderMain');
     }
 
-    public function hookDisplayOrderConfirmation($params)
+    private function renderQrForOrder($order, $template = 'orderconfirmation.tpl')
     {
-        if (empty($params['order'])) {
-            return '';
-        }
-
-        $order = $params['order'];
-
         // Log the hook call with a valid object type for PrestaShopLogger
         if (class_exists('PrestaShopLogger')) {
             PrestaShopLogger::addLog(
@@ -59,6 +54,28 @@ class Psqrcode extends Module
             'customer_message' => $message,
         ]);
 
-        return $this->display(__FILE__, 'views/templates/hook/orderconfirmation.tpl');
+        return $this->display(__FILE__, 'views/templates/hook/' . $template);
+    }
+
+    public function hookDisplayOrderConfirmation($params)
+    {
+        if (empty($params['order'])) {
+            return '';
+        }
+
+        $order = $params['order'];
+
+        return $this->renderQrForOrder($order, 'orderconfirmation.tpl');
+    }
+
+    public function hookDisplayAdminOrderMain($params)
+    {
+        if (empty($params['id_order'])) {
+            return '';
+        }
+
+        $order = new Order((int) $params['id_order']);
+
+        return $this->renderQrForOrder($order, 'adminordermain.tpl');
     }
 }
