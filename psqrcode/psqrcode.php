@@ -5,6 +5,13 @@ if (!defined('_PS_VERSION_')) {
 
 class Psqrcode extends Module
 {
+    /**
+     * Name of the table used to store tokens
+     *
+     * @var string
+     */
+    protected $table_qr_messages;
+
     public function __construct()
     {
         $this->name = 'psqrcode';
@@ -18,12 +25,67 @@ class Psqrcode extends Module
 
         $this->displayName = $this->l('QR Code Message');
         $this->description = $this->l('Generates a QR code from the customer message on order confirmation.');
+
+        $this->table_qr_messages = _DB_PREFIX_ . 'qr_messages';
     }
 
     public function install()
     {
-        return parent::install() &&
-            $this->registerHook('displayOrderConfirmation');
+        return parent::install()
+            && $this->registerHook('displayOrderConfirmation')
+            && $this->registerHook('actionValidateOrder')
+            && $this->createQrTable();
+    }
+
+    public function uninstall()
+    {
+        $this->dropQrTable();
+
+        return parent::uninstall();
+    }
+
+    protected function createQrTable()
+    {
+        $sql = 'CREATE TABLE IF NOT EXISTS `' . $this->table_qr_messages . '` (
+            `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `id_order` INT UNSIGNED NOT NULL,
+            `token` VARCHAR(64) NOT NULL UNIQUE,
+            `created_at` DATETIME NOT NULL,
+            `expires_at` DATETIME DEFAULT NULL,
+            PRIMARY KEY (`id`)
+        ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4';
+
+        return Db::getInstance()->execute($sql);
+    }
+
+    protected function dropQrTable()
+    {
+        $sql = 'DROP TABLE IF EXISTS `' . $this->table_qr_messages . '`';
+        return Db::getInstance()->execute($sql);
+    }
+
+    protected function generateToken()
+    {
+        return bin2hex(random_bytes(16));
+    }
+
+    public function hookActionValidateOrder($params)
+    {
+        if (empty($params['order'])) {
+            return;
+        }
+
+        $order = $params['order'];
+
+        $token = $this->generateToken();
+
+        $data = [
+            'id_order'   => (int) $order->id,
+            'token'      => pSQL($token),
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+
+        Db::getInstance()->insert('qr_messages', $data);
     }
 
     public function hookDisplayOrderConfirmation($params)
@@ -45,18 +107,20 @@ class Psqrcode extends Module
             );
         }
 
-        $sql = 'SELECT message FROM ' . _DB_PREFIX_ . 'message WHERE id_cart=' . (int) $order->id_cart . ' ORDER BY date_add DESC';
-        $message = Db::getInstance()->getValue($sql);
+        $token = Db::getInstance()->getValue('SELECT token FROM ' . $this->table_qr_messages . ' WHERE id_order=' . (int) $order->id);
 
-        if (!$message) {
+        if (!$token) {
             return '';
         }
 
-        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($message);
+        $baseUrl = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__;
+        $displayUrl = $baseUrl . 'modules/' . $this->name . '/qr-display.php?token=' . urlencode($token);
+
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($displayUrl);
 
         $this->context->smarty->assign([
             'qr_url' => $qrUrl,
-            'customer_message' => $message,
+            'display_url' => $displayUrl,
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/orderconfirmation.tpl');
