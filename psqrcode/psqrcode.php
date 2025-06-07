@@ -96,7 +96,7 @@ class Psqrcode extends Module
 
         $order = $params['order'];
 
-        // Log the hook call with a valid object type for PrestaShopLogger
+        // Log the hook call with a valid object type for PrestaShopLogger.
         if (class_exists('PrestaShopLogger')) {
             PrestaShopLogger::addLog(
                 'hook Triggered',
