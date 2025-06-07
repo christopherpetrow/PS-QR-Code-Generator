@@ -404,3 +404,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Zipped module, for easy checkout to branches without loosing packeted module
+*.zip
