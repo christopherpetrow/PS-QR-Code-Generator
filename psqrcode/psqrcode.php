@@ -101,6 +101,7 @@ class Psqrcode extends Module
             );
             // Store in cookie for later use
             $this->context->cookie->delivery_note = $note;
+            $this->context->cookie->write();
         }
     }
 
