@@ -14,10 +14,10 @@ if (!$row) {
     die('Invalid token');
 }
 
-$message = Db::getInstance()->getValue('SELECT message FROM ' . _DB_PREFIX_ . 'message WHERE id_order=' . (int) $row['id_order'] . ' ORDER BY date_add DESC');
+//$message = Db::getInstance()->getValue('SELECT delivery_note FROM ' . _DB_PREFIX_ . 'qr_messages WHERE id_order=' . (int) $row['id_order'] . ' ORDER BY created_at DESC');
 $deliveryNote = $row['delivery_note'];
 
-if (!$message) {
+if (!$deliveryNote) {
     die('No message found');
 }
 
@@ -28,7 +28,6 @@ if (!$message) {
     <title>Message</title>
 </head>
 <body>
-<p><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></p>
 <?php if (!empty($deliveryNote)) { ?>
 <p><?php echo htmlspecialchars($deliveryNote, ENT_QUOTES, 'UTF-8'); ?></p>
 <?php } ?>

@@ -82,23 +82,7 @@ class Psqrcode extends Module
     {
         $note = Tools::getValue('delivery_note');
         
-        PrestaShopLogger::addLog(
-            sprintf('Customer note is: %s', $note),
-            1,
-            null,
-            'Cart',
-            (int)$params['cart']->id
-        );
-        
         if ($note) {
-            // Log at cart level
-            PrestaShopLogger::addLog(
-                sprintf('Note is true, Customer note is: %s', $note),
-                1,
-                null,
-                'Cart',
-                (int)$params['cart']->id
-            );
             // Store in cookie for later use
             $this->context->cookie->delivery_note = $note;
         }
@@ -133,27 +117,22 @@ class Psqrcode extends Module
 
         $result->saveToFile($qrPath);
 
+        //Take tehe note from the cache
         $note = isset($this->context->cookie->delivery_note)
             ? pSQL($this->context->cookie->delivery_note)
             : '';
-
-        PrestaShopLogger::addLog(
-                sprintf('Date check QR is: %d', $note),
-                1,
-                null,
-                'Order',
-                (int)$order->id
-            );
 
         $data = [
             'id_order'   => (int) $order->id,
             'token'      => pSQL($token),
             'created_at' => date('Y-m-d H:i:s'),
             'expires_at' => date('Y-m-d H:i:s', strtotime('+1 month')),
-            'delivery_note' => pSQL($note, true),
+            'delivery_note' => $note,
         ];
 
         Db::getInstance()->insert('qr_messages', $data);
+
+        unset($this->context->cookie->delivery_note);
     }
 
     public function hookDisplayOrderConfirmation($params)
@@ -163,17 +142,6 @@ class Psqrcode extends Module
         }
 
         $order = $params['order'];
-
-        // Log the hook call with a valid object type for PrestaShopLogger.
-        if (class_exists('PrestaShopLogger')) {
-            PrestaShopLogger::addLog(
-                'hook Triggered',
-                PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE,
-                null,
-                'Psqrcode',
-                (int) $order->id
-            );
-        }
 
         $tokenRow = Db::getInstance()->getRow('SELECT token, delivery_note FROM ' . $this->table_qr_messages . ' WHERE id_order=' . (int) $order->id);
 
@@ -210,16 +178,6 @@ class Psqrcode extends Module
 
         if (!$idOrder) {
             return '';
-        }
-
-        if (class_exists('PrestaShopLogger')) {
-            PrestaShopLogger::addLog(
-                'hook Triggered admin',
-                PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE,
-                null,
-                'Psqrcode',
-                $idOrder
-            );
         }
 
         $tokenRow = Db::getInstance()->getRow('SELECT token, delivery_note FROM ' . $this->table_qr_messages . ' WHERE id_order=' . $idOrder);
