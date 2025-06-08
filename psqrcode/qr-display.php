@@ -30,13 +30,22 @@ if (!$deliveryNote) {
     <style>
         body {
             margin: 0;
-            padding: 80px 20px 20px;
             font-family: Arial, sans-serif;
             background: #f5f5f5;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 80px 20px 20px;
+            box-sizing: border-box;
         }
 
         .page-header {
@@ -88,10 +97,12 @@ if (!$deliveryNote) {
     <img src="<?php echo __PS_BASE_URI__; ?>img/logo.png" alt="Logo" class="logo">
 </header>
 
-<div class="message-container">
-<?php if (!empty($deliveryNote)) { ?>
-    <p class="message-text"><?php echo nl2br(htmlspecialchars($deliveryNote, ENT_QUOTES, 'UTF-8')); ?></p>
-<?php } ?>
-</div>
+<main class="content">
+    <div class="message-container">
+    <?php if (!empty($deliveryNote)) { ?>
+        <p class="message-text"><?php echo nl2br(htmlspecialchars($deliveryNote, ENT_QUOTES, 'UTF-8')); ?></p>
+    <?php } ?>
+    </div>
+</main>
 </body>
 </html>
