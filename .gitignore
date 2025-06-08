@@ -407,4 +407,9 @@ FodyWeavers.xsd
 
 # Zipped module, for easy checkout to branches without loosing packeted module
 *.zip
+
+# Server side folder for qr codes
 psqrcode/qrcodes/
+
+# Development temp files
+other/
