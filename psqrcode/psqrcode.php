@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__ . '/vendor/autoload.php';
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -40,7 +43,7 @@ class Psqrcode extends Module
 
     public function uninstall()
     {
-        $this->dropQrTable();
+        //$this->dropQrTable();
 
         return parent::uninstall();
     }
@@ -143,7 +146,7 @@ class Psqrcode extends Module
 
         if (class_exists('PrestaShopLogger')) {
             PrestaShopLogger::addLog(
-                'hook Triggered',
+                'hook Triggered admin',
                 PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE,
                 null,
                 'Psqrcode',
