@@ -34,6 +34,7 @@ class Psqrcode extends Module
         return parent::install()
             && $this->registerHook('displayOrderConfirmation')
             && $this->registerHook('actionValidateOrder')
+            && $this->registerHook('displayAdminOrderMain')
             && $this->createQrTable();
     }
 
@@ -124,5 +125,49 @@ class Psqrcode extends Module
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/orderconfirmation.tpl');
+    }
+
+    public function hookDisplayAdminOrderMain($params)
+    {
+        $idOrder = 0;
+
+        if (!empty($params['id_order'])) {
+            $idOrder = (int) $params['id_order'];
+        } elseif (!empty($params['order']) && $params['order'] instanceof Order) {
+            $idOrder = (int) $params['order']->id;
+        }
+
+        if (!$idOrder) {
+            return '';
+        }
+
+        if (class_exists('PrestaShopLogger')) {
+            PrestaShopLogger::addLog(
+                'hook Triggered',
+                PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE,
+                null,
+                'Psqrcode',
+                $idOrder
+            );
+        }
+
+        $token = Db::getInstance()->getValue('SELECT token FROM ' . $this->table_qr_messages . ' WHERE id_order=' . $idOrder);
+
+        if (!$token) {
+            return '';
+        }
+
+        $baseUrl = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__;
+        $displayUrl = $baseUrl . 'modules/' . $this->name . '/qr-display.php?token=' . urlencode($token);
+
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($displayUrl);
+
+        $this->context->smarty->assign([
+            'qr_url' => $qrUrl,
+            'display_url' => $displayUrl,
+            'customer_message_label' => $this->l('Customer message'),
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/hook/adminordermain.tpl');
     }
 }
