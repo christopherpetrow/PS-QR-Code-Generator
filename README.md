@@ -16,10 +16,18 @@ To capture a delivery note during checkout, edit your theme's
 markup near the end of the shipping form (after the gift message block):
 
 ```smarty
-  <div id="delivery_note" class="form-group">
-    <label for="delivery_note">{l s='Delivery note' mod='psqrcode'}</label>
-    <textarea rows="2" cols="120" id="delivery_note" name="delivery_note"></textarea>
-  </div>
+  <div class="form-group mt-3">
+            <label for="delivery_note">
+              {l s='Delivery note' d='Shop.Theme.Checkout'}
+            </label>
+            <textarea
+              id="delivery_note"
+              name="delivery_note"
+              rows="2"
+              class="form-control"
+              placeholder="{l s='Add a note for delivery (optional)' d='Shop.Theme.Checkout'}"
+            ></textarea>
+          </div>
 ```
 
 An example file is included under `izpraticvete.eu/themes/warehouse/...` as a reference.
