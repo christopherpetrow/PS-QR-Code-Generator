@@ -143,9 +143,9 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "5.x-dev"
+                "source": "https://github.com/endroid/qr-code/tree/5.1.0"
                 }
-            },
+            "time": "2024-09-08T08:52:55+00:00"
             "autoload": {
                 "psr-4": {
                     "Endroid\\QrCode\\": "src/"

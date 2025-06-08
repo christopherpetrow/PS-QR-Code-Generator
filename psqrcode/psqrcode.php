@@ -96,14 +96,14 @@ class Psqrcode extends Module
 
         $qrPath = $qrDir . $token . '.png';
 
-        $builder = new Builder(
-            writer: new PngWriter(),
-            data: $displayUrl,
-            size: 200,
-            margin: 0
-        );
+        $result = Builder::create()
+            ->writer(new PngWriter())
+            ->data($displayUrl)
+            ->size(200)
+            ->margin(0)
+            ->build();
 
-        $builder->build()->saveToFile($qrPath);
+        $result->saveToFile($qrPath);
 
         $data = [
             'id_order'   => (int) $order->id,
