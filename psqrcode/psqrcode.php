@@ -2,6 +2,9 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\PngWriter;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -83,10 +86,30 @@ class Psqrcode extends Module
 
         $token = $this->generateToken();
 
+        $baseUrl = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__;
+        $displayUrl = $baseUrl . 'modules/' . $this->name . '/qr-display.php?token=' . urlencode($token);
+
+        $qrDir = _PS_MODULE_DIR_ . $this->name . '/qrcodes/';
+        if (!is_dir($qrDir)) {
+            @mkdir($qrDir, 0755, true);
+        }
+
+        $qrPath = $qrDir . $token . '.png';
+
+        $builder = new Builder(
+            writer: new PngWriter(),
+            data: $displayUrl,
+            size: 200,
+            margin: 0
+        );
+
+        $builder->build()->saveToFile($qrPath);
+
         $data = [
             'id_order'   => (int) $order->id,
             'token'      => pSQL($token),
             'created_at' => date('Y-m-d H:i:s'),
+            'expires_at' => date('Y-m-d H:i:s', strtotime('+1 month')),
         ];
 
         Db::getInstance()->insert('qr_messages', $data);
@@ -120,7 +143,7 @@ class Psqrcode extends Module
         $baseUrl = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__;
         $displayUrl = $baseUrl . 'modules/' . $this->name . '/qr-display.php?token=' . urlencode($token);
 
-        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($displayUrl);
+        $qrUrl = $baseUrl . 'modules/' . $this->name . '/qrcodes/' . $token . '.png';
 
         $this->context->smarty->assign([
             'qr_url' => $qrUrl,
@@ -163,7 +186,7 @@ class Psqrcode extends Module
         $baseUrl = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__;
         $displayUrl = $baseUrl . 'modules/' . $this->name . '/qr-display.php?token=' . urlencode($token);
 
-        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($displayUrl);
+        $qrUrl = $baseUrl . 'modules/' . $this->name . '/qrcodes/' . $token . '.png';
 
         $this->context->smarty->assign([
             'qr_url' => $qrUrl,
