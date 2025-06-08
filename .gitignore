@@ -407,3 +407,4 @@ FodyWeavers.xsd
 
 # Zipped module, for easy checkout to branches without loosing packeted module
 *.zip
+psqrcode/qrcodes/
