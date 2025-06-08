@@ -41,7 +41,6 @@ class Psqrcode extends Module
             && $this->registerHook('displayOrderConfirmation')
             && $this->registerHook('actionValidateOrder')
             && $this->registerHook('displayAdminOrderMain')
-            && $this->registerHook('displayCarrierExtraContent')
             && $this->createQrTable();
     }
 
@@ -76,11 +75,6 @@ class Psqrcode extends Module
     protected function generateToken()
     {
         return bin2hex(random_bytes(16));
-    }
-
-    public function hookDisplayCarrierExtraContent($params)
-    {
-        return $this->display(__FILE__, 'views/templates/hook/shippingextra.tpl');
     }
 
     public function hookActionValidateOrder($params)
