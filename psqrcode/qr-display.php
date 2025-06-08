@@ -30,13 +30,39 @@ if (!$deliveryNote) {
     <style>
         body {
             margin: 0;
-            padding: 20px;
+            padding: 80px 20px 20px;
             font-family: Arial, sans-serif;
             background: #f5f5f5;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .page-header .back-link {
+            position: absolute;
+            left: 1rem;
+            color: #333;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .page-header .logo {
+            height: 40px;
         }
 
         .message-container {
@@ -57,6 +83,11 @@ if (!$deliveryNote) {
     </style>
 </head>
 <body>
+<header class="page-header">
+    <a class="back-link" href="<?php echo __PS_BASE_URI__; ?>">&larr; Back to site</a>
+    <img src="<?php echo __PS_BASE_URI__; ?>img/logo.png" alt="Logo" class="logo">
+</header>
+
 <div class="message-container">
 <?php if (!empty($deliveryNote)) { ?>
     <p class="message-text"><?php echo nl2br(htmlspecialchars($deliveryNote, ENT_QUOTES, 'UTF-8')); ?></p>
