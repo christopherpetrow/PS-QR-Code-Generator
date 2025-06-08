@@ -38,6 +38,7 @@ class Psqrcode extends Module
     public function install()
     {
         return parent::install()
+            && $this->registerHook('actionCarrierProcess')
             && $this->registerHook('displayOrderConfirmation')
             && $this->registerHook('actionValidateOrder')
             && $this->registerHook('displayAdminOrderMain')
@@ -77,6 +78,32 @@ class Psqrcode extends Module
         return bin2hex(random_bytes(16));
     }
 
+    public function hookActionCarrierProcess(array $params)
+    {
+        $note = Tools::getValue('delivery_note');
+        
+        PrestaShopLogger::addLog(
+            sprintf('Customer note is: %s', $note),
+            1,
+            null,
+            'Cart',
+            (int)$params['cart']->id
+        );
+        
+        if ($note) {
+            // Log at cart level
+            PrestaShopLogger::addLog(
+                sprintf('Note is true, Customer note is: %s', $note),
+                1,
+                null,
+                'Cart',
+                (int)$params['cart']->id
+            );
+            // Store in cookie for later use
+            $this->context->cookie->delivery_note = $note;
+        }
+    }
+
     public function hookActionValidateOrder($params)
     {
         if (empty($params['order'])) {
@@ -106,12 +133,24 @@ class Psqrcode extends Module
 
         $result->saveToFile($qrPath);
 
+        $note = isset($this->context->cookie->delivery_note)
+            ? pSQL($this->context->cookie->delivery_note)
+            : '';
+
+        PrestaShopLogger::addLog(
+                sprintf('Date check QR is: %d', $note),
+                1,
+                null,
+                'Order',
+                (int)$order->id
+            );
+
         $data = [
             'id_order'   => (int) $order->id,
             'token'      => pSQL($token),
             'created_at' => date('Y-m-d H:i:s'),
             'expires_at' => date('Y-m-d H:i:s', strtotime('+1 month')),
-            'delivery_note' => pSQL(Tools::getValue('delivery_note'), true),
+            'delivery_note' => pSQL($note, true),
         ];
 
         Db::getInstance()->insert('qr_messages', $data);
