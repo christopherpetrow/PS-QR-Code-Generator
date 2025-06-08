@@ -11,8 +11,7 @@ final class PngResult extends GdResult
     public function __construct(
         MatrixInterface $matrix,
         \GdImage $image,
-        private readonly int $quality = -1,
-        private readonly ?int $numberOfColors = null,
+        private readonly int $quality = -1
     ) {
         parent::__construct($matrix, $image);
     }
@@ -20,9 +19,6 @@ final class PngResult extends GdResult
     public function getString(): string
     {
         ob_start();
-        if (null !== $this->numberOfColors) {
-            imagetruecolortopalette($this->image, false, $this->numberOfColors);
-        }
         imagepng($this->image, quality: $this->quality);
 
         return strval(ob_get_clean());
