@@ -55,23 +55,35 @@ if (!$deliveryNote) {
             right: 0;
             height: 60px;
             background: rgba(255, 255, 255, 0.9);
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: center;
+            padding: 0 1rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             z-index: 1;
         }
 
         .page-header .back-link {
-            position: absolute;
-            left: 1rem;
+            grid-column: 1;
+            justify-self: start;
             color: #333;
             text-decoration: none;
             font-size: 0.9rem;
         }
 
         .page-header .logo {
+            grid-column: 2;
+            justify-self: center;
             height: 40px;
+        }
+
+        @media (max-width: 480px) {
+            .page-header .logo {
+                height: 32px;
+            }
+            .page-header .back-link {
+                font-size: 0.8rem;
+            }
         }
 
         .message-container {
