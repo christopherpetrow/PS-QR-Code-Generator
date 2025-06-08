@@ -41,6 +41,7 @@ class Psqrcode extends Module
             && $this->registerHook('displayOrderConfirmation')
             && $this->registerHook('actionValidateOrder')
             && $this->registerHook('displayAdminOrderMain')
+            && $this->registerHook('displayCarrierExtraContent')
             && $this->createQrTable();
     }
 
@@ -59,6 +60,7 @@ class Psqrcode extends Module
             `token` VARCHAR(64) NOT NULL UNIQUE,
             `created_at` DATETIME NOT NULL,
             `expires_at` DATETIME DEFAULT NULL,
+            `delivery_note` TEXT DEFAULT NULL,
             PRIMARY KEY (`id`)
         ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4';
 
@@ -74,6 +76,11 @@ class Psqrcode extends Module
     protected function generateToken()
     {
         return bin2hex(random_bytes(16));
+    }
+
+    public function hookDisplayCarrierExtraContent($params)
+    {
+        return $this->display(__FILE__, 'views/templates/hook/shippingextra.tpl');
     }
 
     public function hookActionValidateOrder($params)
@@ -110,6 +117,7 @@ class Psqrcode extends Module
             'token'      => pSQL($token),
             'created_at' => date('Y-m-d H:i:s'),
             'expires_at' => date('Y-m-d H:i:s', strtotime('+1 month')),
+            'delivery_note' => pSQL(Tools::getValue('delivery_note'), true),
         ];
 
         Db::getInstance()->insert('qr_messages', $data);
@@ -134,11 +142,14 @@ class Psqrcode extends Module
             );
         }
 
-        $token = Db::getInstance()->getValue('SELECT token FROM ' . $this->table_qr_messages . ' WHERE id_order=' . (int) $order->id);
+        $tokenRow = Db::getInstance()->getRow('SELECT token, delivery_note FROM ' . $this->table_qr_messages . ' WHERE id_order=' . (int) $order->id);
 
-        if (!$token) {
+        if (!$tokenRow) {
             return '';
         }
+
+        $token = $tokenRow['token'];
+        $deliveryNote = $tokenRow['delivery_note'];
 
         $baseUrl = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__;
         $displayUrl = $baseUrl . 'modules/' . $this->name . '/qr-display.php?token=' . urlencode($token);
@@ -148,6 +159,7 @@ class Psqrcode extends Module
         $this->context->smarty->assign([
             'qr_url' => $qrUrl,
             'display_url' => $displayUrl,
+            'delivery_note' => $deliveryNote,
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/orderconfirmation.tpl');
@@ -177,11 +189,14 @@ class Psqrcode extends Module
             );
         }
 
-        $token = Db::getInstance()->getValue('SELECT token FROM ' . $this->table_qr_messages . ' WHERE id_order=' . $idOrder);
+        $tokenRow = Db::getInstance()->getRow('SELECT token, delivery_note FROM ' . $this->table_qr_messages . ' WHERE id_order=' . $idOrder);
 
-        if (!$token) {
+        if (!$tokenRow) {
             return '';
         }
+
+        $token = $tokenRow['token'];
+        $deliveryNote = $tokenRow['delivery_note'];
 
         $baseUrl = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__;
         $displayUrl = $baseUrl . 'modules/' . $this->name . '/qr-display.php?token=' . urlencode($token);
@@ -192,6 +207,7 @@ class Psqrcode extends Module
             'qr_url' => $qrUrl,
             'display_url' => $displayUrl,
             'customer_message_label' => $this->l('Customer message'),
+            'delivery_note' => $deliveryNote,
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/adminordermain.tpl');
